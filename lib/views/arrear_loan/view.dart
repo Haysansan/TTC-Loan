@@ -18,7 +18,7 @@ class ArrearLoanView extends GetView<ArrearLoanController> {
         if (controller.isLoading.value) {
           return Center(child: CircularProgressIndicator());
         }
-        final List<RepaymentModel> delivery = controller.repaymentModel;
+        final List<ArrearModel> delivery = controller.arrearModel;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -54,7 +54,7 @@ class ArrearLoanView extends GetView<ArrearLoanController> {
                             LocaleKeys.date.tr,
                             style: AppTextStyle.normalPrimaryRegular,
                           ),
-                          const SizedBox(height: 2), // Small spacing
+                          const SizedBox(height: 2),
                           InkWell(
                             onTap: () => controller.getDatePicker().show(),
                             child: StackTextField(
@@ -66,7 +66,7 @@ class ArrearLoanView extends GetView<ArrearLoanController> {
                           ),
                         ],
                       ),
-                      10.height, // Space before the button
+                      10.height,
                       PrimaryButton(
                         text: LocaleKeys.filter.tr,
                         onPressed: () async {
@@ -74,7 +74,7 @@ class ArrearLoanView extends GetView<ArrearLoanController> {
                             return;
                           }
                           controller.formKey.currentState!.save();
-                          await controller.fetchRepayment();
+                          await controller.fetchArrear();
                         },
                       ),
                     ],
@@ -86,14 +86,13 @@ class ArrearLoanView extends GetView<ArrearLoanController> {
             Obx(() {
               if (controller.isLoadings.value) {
                 return Center(child: CircularProgressIndicator());
-              } else if (controller.isDone &&
-                  controller.repaymentModel.isEmpty) {
+              } else if (controller.isDone && controller.arrearModel.isEmpty) {
                 return NoDataWidget(text: LocaleKeys.searchNotFound.tr);
               } else {
                 return Expanded(
                   child: ListView.builder(
                     padding: UIConstants.spacing.padHorizontal,
-                    itemCount: controller.repaymentModel.length,
+                    itemCount: controller.arrearModel.length,
                     itemBuilder: (context, index) {
                       return Padding(
                         padding: UIConstants.spacing.padBottom,

@@ -1,3 +1,5 @@
+import 'package:googleapis/vault/v1.dart';
+
 export 'booking/booking.dart';
 export 'booking_details/booking_details.dart';
 export 'contact_us/contact_us.dart';
@@ -33,3 +35,4 @@ export 'coborrower/coborrower.dart';
 export 'guarantor/guarantor.dart';
 export 'disbursement/disbursement.dart';
 export 'summary_card/summary_card_config.dart';
+export 'arrear_loan/arrear_loan.dart';

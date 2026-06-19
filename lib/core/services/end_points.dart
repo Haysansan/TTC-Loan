@@ -19,6 +19,7 @@ class EndPoints {
   static String get contactUs => 'setting/general';
   static String get tracking => 'delivery-tracking';
   static String get deleteAccount => 'disable-user';
+  static String get arrearLoan => 'report/loan/arrears';
 
   static String get repayment => 'report/loan/un_repayment';
   static String get repaymentDetail => 'report/loan/repaymentdetail';

@@ -15,7 +15,7 @@ class ArrearLoanController extends GetxController {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final RefreshController refreshCtl = RefreshController(initialRefresh: false);
   final PaginationModel pagination = PaginationModel(limit: 15);
-  final RxList<RepaymentModel> repaymentModel = <RepaymentModel>[].obs;
+  final RxList<ArrearModel> arrearModel = <ArrearModel>[].obs;
   bool isDone = false;
   final RxBool isLoadings = false.obs;
   final RxBool isLoading = false.obs;
@@ -27,17 +27,16 @@ class ArrearLoanController extends GetxController {
 
   @override
   void onInit() async {
-    fetchUser();
+    await fetchUser();
+    // await fetchArrear(isRefresh: true);
     super.onInit();
   }
 
-  // show branch_id for login
   Future<int?> getbranchId() async {
     int? branchId = await SharedPreferencesManager.getIntValue('branch_id');
     return branchId;
   }
 
-  // show user_id from login
   Future<int?> getUserId() async {
     int? user_id = await SharedPreferencesManager.getIntValue('user_id');
     return user_id;
@@ -45,79 +44,96 @@ class ArrearLoanController extends GetxController {
 
   final StartController startCtl = Get.find<StartController>();
 
-  Future<void> fetchRepayment({
+  Future<int?> _resolveStaffId() async {
+    if (UserRepository.shared.isCO) {
+      return getUserId();
+    }
+    return StaffSelected?.id;
+  }
+
+  Future<void> fetchArrear({
     bool isRefresh = false,
     bool isLoadMore = false,
     bool isFilter = false,
   }) async {
+    final staffId = await _resolveStaffId();
     try {
-      if (isRefresh) {
-        if (!isFilter) {
-          clearFilter();
-        }
-        pagination.refresh();
-      }
+      if (isRefresh && !isFilter) clearFilter();
 
-      if (pagination.isEndOfPage) {
-        return;
-      }
-
-      // Show loading only when first time and filter
       if ((!isRefresh && !isLoadMore) || isFilter) {
         isLoadings.value = true;
       }
 
-      // Take care of load more error when while load more user switch the tap
-      if (startCtl.selectedIndex.value != 3 && isLoadMore) {
-        return;
-      }
+      if (startCtl.selectedIndex.value != 3 && isLoadMore) return;
 
-      // totalClient.text  = getPropertyFromJson(res.data, 'totalClient');
-      // totalAmount.text  = getPropertyFromJson(res.data, 'totalAmount');
+      final response = await Get.find<ApiService>().get(
+        EndPoints.arrearLoan,
+        queryParameters: {'staff_id': staffId, 'date': dateCtl.text},
+      );
 
-      // total = getPropertyFromJson(res.data['totalAmount'], 'total') ?? 0;
-      // pagination.checkLoadMore((data['data'] as List).length);
-
-      if (isRefresh) {
-        repaymentModel.value = await DatabaseHelper.instance
-            .queryAllRowsRepayments(1);
-      } else {
-        repaymentModel.addAll(
-          await DatabaseHelper.instance.queryAllRowsRepayments(1),
-        );
-      }
+      final List<dynamic> data = response.data['data'] ?? [];
+      arrearModel.value = data.map((e) => ArrearModel.fromJson(e)).toList();
       isDone = true;
     } catch (e) {
-      if (isClosed) {
-        return;
-      }
-      ExceptionHandler.handleException(e);
+      if (!isClosed) ExceptionHandler.handleException(e);
     } finally {
       isLoadings.value = false;
     }
   }
 
   Future<void> onRefresh({bool isFilter = false}) async {
-    await fetchRepayment(isRefresh: true, isFilter: isFilter);
+    await fetchArrear(isRefresh: true, isFilter: isFilter);
     refreshCtl.refreshCompleted();
   }
 
   Future<void> onLoading() async {
-    await fetchRepayment(isLoadMore: true);
+    await fetchArrear(isLoadMore: true);
     refreshCtl.loadComplete();
   }
 
   void clearFilter() {}
 
   Future<void> fetchUser() async {
+    final branchId = await getbranchId();
     try {
       isLoading.value = true;
-      StaffList = await DatabaseHelper.instance.queryAllRowsStaff();
-    } catch (e) {
-      if (isClosed) {
-        return;
+      if (UserRepository.shared.isCO) {
+        final p = UserRepository.shared.profile;
+        StaffList = [
+          StaffModel(
+            id: p.id.toInt(),
+            name: p.name,
+            email: p.email,
+            profile: p.profile,
+            phone: p.phone,
+            gender: p.gender,
+            status: p.status,
+            branch_id: p.branch_id.toString(),
+            created_at: p.created_at,
+            updated_at: p.updated_at,
+            profilePath: p.profilePath,
+            policy: p.policy,
+            type: p.type,
+            full_name: p.full_name,
+          ),
+        ];
+      } else {
+        final res = await Get.find<ApiService>().get(
+          EndPoints.getStaff,
+          queryParameters: {'branch_id': branchId},
+          isShowLoading: false,
+        );
+        final data =
+            (getPropertyFromJson(res.data, 'data') as List)
+                .cast<Map<String, dynamic>>();
+        StaffList =
+            data.map((e) => StaffModel.fromJson(e)).where((s) {
+              final type = s.type.toLowerCase();
+              return type == 'co' || type == 'credit officer';
+            }).toList();
       }
-      ExceptionHandler.handleException(e);
+    } catch (e) {
+      if (!isClosed) ExceptionHandler.handleException(e);
     } finally {
       isLoading.value = false;
     }

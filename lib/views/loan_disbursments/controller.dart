@@ -68,7 +68,7 @@ class LoanDisbursmentsController extends GetxController {
 
     await Future.wait([
       _loadUserAndClients(),
-      // fetchFrequencyTypes(), // replaced by hardcoded
+      // fetchFrequencyTypes(),
       fetchProductTypes(),
       fetchLoanCreate(),
       fetchDailyIncome(),

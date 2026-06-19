@@ -6,7 +6,7 @@ import 'package:apploan/models/models.dart';
 class ArrearItemWidget extends StatelessWidget {
   const ArrearItemWidget({Key? key, required this.delivery}) : super(key: key);
 
-  final RepaymentModel delivery;
+  final ArrearModel delivery;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,6 @@ class ArrearItemWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Client code + date (left) and amount due (right)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -40,7 +39,8 @@ class ArrearItemWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        delivery.client_code,
+                        delivery
+                            .clientId, // Old: delivery.client_code — see note 1
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyle.normalPrimaryBold.copyWith(
@@ -49,7 +49,7 @@ class ArrearItemWidget extends StatelessWidget {
                       ),
                       2.height,
                       Text(
-                        delivery.last_payment_date,
+                        delivery.lastPaymentDate,
                         style: AppTextStyle.smallGreyRegular,
                       ),
                     ],
@@ -57,7 +57,9 @@ class ArrearItemWidget extends StatelessWidget {
                 ),
                 8.width,
                 Text(
-                  formatCurrency(delivery.total_repayment),
+                  formatCurrency(
+                    delivery.totalOverdue,
+                  ), // Old: delivery.total_repayment
                   style: AppTextStyle.normalSecondaryBold.copyWith(
                     color: AppColor.red,
                   ),
@@ -66,7 +68,6 @@ class ArrearItemWidget extends StatelessWidget {
             ),
             10.height,
 
-            // Avatar + client name + phone/overdue days
             Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -75,7 +76,7 @@ class ArrearItemWidget extends StatelessWidget {
                   backgroundColor: AppColor.white,
                   child: ClipOval(
                     child: CustomNetworkImage(
-                      imageUrl: delivery.photo,
+                      imageUrl: '', // Old: delivery.photo — see note 2
                       height: 48,
                       width: 48,
                       fit: BoxFit.cover,
@@ -104,7 +105,7 @@ class ArrearItemWidget extends StatelessWidget {
                       ),
                       4.height,
                       Text(
-                        'យឺត ${delivery.arrea} ថ្ងៃ',
+                        'យឺត ${delivery.ageOfLoan} ថ្ងៃ', // Old: delivery.arrea — see note 3
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTextStyle.smallRedSemibold,

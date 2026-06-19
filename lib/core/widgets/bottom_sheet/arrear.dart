@@ -9,7 +9,7 @@ import 'package:apploan/views/views.dart';
 class ArrearSheet extends StatelessWidget {
   ArrearSheet({Key? key, required this.delivery}) : super(key: key);
 
-  final RepaymentModel delivery;
+  final ArrearModel delivery;
   final ArrearLoanController startCtl = Get.find<ArrearLoanController>();
 
   final TextEditingController totalRepaymentCtl = TextEditingController();
@@ -40,10 +40,10 @@ class ArrearSheet extends StatelessWidget {
         'loan_officer': userId,
         'created_by_id': userId,
         'branch': delivery.branch,
-        'client_id': delivery.client_id,
-        'loan_id': delivery.loan_id,
-        'client_code': delivery.client_code,
-        'photo': delivery.photo,
+        'client_id': delivery.clientId,
+        'loan_id': delivery.id,
+        'client_code': delivery.clientId,
+        'photo': '',
         'total_repayment': rawAmount,
         'amount_penalty': totalPenaltyCtl.text,
         'currency_id': 2,
@@ -91,7 +91,9 @@ class ArrearSheet extends StatelessWidget {
 
             _item(
               title: LocaleKeys.totalRepayment.tr,
-              value: formatCurrency(delivery.total_repayment),
+              value: formatCurrency(
+                delivery.totalOverdue,
+              ), // Old: delivery.total_repayment
               isTotal: true,
             ),
             UIConstants.midSpacing.height,
@@ -99,22 +101,22 @@ class ArrearSheet extends StatelessWidget {
             UIConstants.midSpacing.height,
             _item(
               title: LocaleKeys.principals.tr,
-              value: formatCurrency(delivery.principal),
+              value: formatCurrency(delivery.principalOverdue),
             ),
             UIConstants.midSpacing.height,
             _item(
               title: LocaleKeys.interast.tr,
-              value: formatCurrency(delivery.interest),
+              value: formatCurrency(delivery.interestOverdue),
             ),
             UIConstants.midSpacing.height,
             _item(
               title: LocaleKeys.fee.tr,
-              value: formatCurrency(delivery.monthly_fee),
+              value: formatCurrency(delivery.feesOverdue),
             ),
             UIConstants.midSpacing.height,
             _item(
               title: LocaleKeys.penalty.tr,
-              value: formatCurrency(delivery.penalty),
+              value: formatCurrency(delivery.penaltiesOverdue),
             ),
             UIConstants.spacing.height,
 
@@ -134,7 +136,11 @@ class ArrearSheet extends StatelessWidget {
         .replaceAll('.00', '');
   }
 
-  Widget _item({required String title, required String value, bool isTotal = false}) {
+  Widget _item({
+    required String title,
+    required String value,
+    bool isTotal = false,
+  }) {
     return Row(
       children: [
         Text(
