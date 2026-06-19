@@ -117,7 +117,7 @@ class LoginController extends GetxController {
 
       // Refresh local cache in the background so offline screens and the
       // disbursement form's cached lookups are up to date after login.
-      SyncDataController().syncCore();
+      // SyncDataController().syncCore();
     } catch (e) {
       if (isClosed) {
         return;

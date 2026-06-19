@@ -11,8 +11,6 @@ class StartController extends GetxController {
 
   @override
   void onInit() {
-    // Call over here becuase inside that UserRepository need to access Get.context
-    // Get.context must be call after GetMaterialApp
     UserRepository.shared;
     screens = List.from([
       const DashboardView(),
