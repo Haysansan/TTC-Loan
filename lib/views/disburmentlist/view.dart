@@ -10,6 +10,8 @@ class DisburmentListView extends GetView<DisburmentListController> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCO = UserRepository.shared.isCO;
+
     return Scaffold(
       appBar: CustomAppBar(
         title: LocaleKeys.loanDisbursmentsList.tr,
@@ -25,7 +27,7 @@ class DisburmentListView extends GetView<DisburmentListController> {
           children: [
             const _SummarySection(),
             UIConstants.spacing.height,
-            const _SearchSection(),
+            if (isCO) _SearchSection() else _FilterSection(),
             UIConstants.spacing.height,
             _DisbursementList(
               items: controller.disburment,
@@ -122,6 +124,46 @@ class _SearchSection extends StatelessWidget {
           c.filterByName();
         },
         onSubmitted: (_) => c.filterByName(),
+      ),
+    );
+  }
+}
+
+class _FilterSection extends StatelessWidget {
+  const _FilterSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Get.find<DisburmentListController>();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Filter by CO', style: AppTextStyle.normalPrimaryBold),
+              Obx(() {
+                if (c.selectedOfficer.value == null) return const SizedBox();
+                return GestureDetector(
+                  onTap: () => c.filterByOfficer(null),
+                  child: Text('Clear', style: AppTextStyle.normalRedBold),
+                );
+              }),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Obx(
+            () => SearchDropDown<String>(
+              items: c.coNames,
+              itemAsString: (item) => item,
+              onChanged: c.filterByOfficer,
+              selectedItem: c.selectedOfficer.value,
+              label: 'Search for CO',
+            ),
+          ),
+        ],
       ),
     );
   }

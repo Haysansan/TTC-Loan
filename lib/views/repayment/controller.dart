@@ -15,9 +15,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 class RepaymentController extends GetxController {
   final RxBool isLoadingList = false.obs;
   final RxBool isReceiving = false.obs;
-
-  final RxList<CoRepaymentGroup> coGroups = <CoRepaymentGroup>[].obs;
-  final RxList<String> coNames = <String>[].obs;
   final RxDouble totalKhr = 0.0.obs;
   final RxInt totalCOs = 0.obs;
 
@@ -36,6 +33,12 @@ class RepaymentController extends GetxController {
   num total = 0;
 
   final StartController startCtl = Get.find<StartController>();
+
+  final selectedOfficer = RxnString();
+  final RxList<CoRepaymentGroup> coGroups = <CoRepaymentGroup>[].obs;
+  final RxList<CoRepaymentGroup> filteredGroups = <CoRepaymentGroup>[].obs;
+  final RxList<String> coNames = <String>[].obs;
+  List<RepaymentModel> _allItems = [];
 
   @override
   void onInit() {
@@ -134,6 +137,15 @@ class RepaymentController extends GetxController {
   //     isLoading.value = false;
   //   }
   // }
+  void filterByOfficer(String? name) {
+    selectedOfficer.value = name;
+    if (name == null) {
+      repaymentModel.value = _allItems;
+    } else {
+      repaymentModel.value =
+          _allItems.where((e) => e.loan_officer == name).toList();
+    }
+  }
 
   ///Repayment
   double sum = 0;
@@ -214,6 +226,18 @@ class RepaymentController extends GetxController {
             .map((e) => RepaymentModel.fromJson(e))
             .where((e) => double.parse(e.total_repayment) > 0),
       );
+      _allItems = repaymentModel.toList();
+      coNames.value =
+          repaymentModel
+              .map(
+                (e) => e.loan_officer,
+              ) // confirm field name on RepaymentModel
+              .where((name) => name.isNotEmpty && name != 'N/A')
+              .toSet()
+              .cast<String>()
+              .toList()
+            ..sort();
+
       _updateSummary();
     } catch (e) {
       if (isClosed) {

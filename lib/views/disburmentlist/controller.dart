@@ -17,6 +17,11 @@ class DisburmentListController extends GetxController {
   bool isDone = false;
   final StartController startCtl = Get.find<StartController>();
 
+  final selectedOfficer = RxnString();
+  final RxList<CoRepaymentGroup> coGroups = <CoRepaymentGroup>[].obs;
+  final RxList<CoRepaymentGroup> filteredGroups = <CoRepaymentGroup>[].obs;
+  final RxList<String> coNames = <String>[].obs;
+
   List<DisbursementListModel> _allItems = [];
 
   bool get isBmOrCeo =>
@@ -59,6 +64,16 @@ class DisburmentListController extends GetxController {
     }
   }
 
+  void filterByOfficer(String? name) {
+    selectedOfficer.value = name;
+    if (name == null) {
+      disburment.value = _allItems;
+    } else {
+      disburment.value =
+          _allItems.where((e) => e.loan_officer == name).toList();
+    }
+  }
+
   void clearFilter() {
     searchCtl.text = '';
   }
@@ -87,6 +102,15 @@ class DisburmentListController extends GetxController {
               .reversed
               .toList();
       disburment.value = _allItems;
+
+      coNames.value =
+          _allItems
+              .map((e) => e.loan_officer)
+              .where((name) => name.isNotEmpty && name != 'N/A')
+              .toSet()
+              .cast<String>()
+              .toList()
+            ..sort();
 
       totalClient.text =
           getPropertyFromJson(res.data, 'totalClient')?.toString() ?? '0';

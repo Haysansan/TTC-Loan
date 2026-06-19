@@ -11,6 +11,11 @@ import 'package:intl/intl.dart';
 
 class PaymentListController extends GetxController {
   final TextEditingController searchCtl = TextEditingController();
+  final selectedOfficer = RxnString();
+  final RxList<CoRepaymentGroup> coGroups = <CoRepaymentGroup>[].obs;
+  final RxList<CoRepaymentGroup> filteredGroups = <CoRepaymentGroup>[].obs;
+  final RxList<String> coNames = <String>[].obs;
+
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final RxList<PaymentModel> repayment = <PaymentModel>[].obs;
   // final RxList<RepaymentModel> bmRepaymentList = <RepaymentModel>[].obs;
@@ -63,6 +68,12 @@ class PaymentListController extends GetxController {
 
   Future<int?> getUserId() async {
     return await SharedPreferencesManager.getIntValue('user_id');
+  }
+
+  void filterByOfficer(String? name) {
+    selectedOfficer.value = name;
+    filteredGroups.value =
+        name == null ? [] : coGroups.where((g) => g.coName == name).toList();
   }
 
   int customerCount = 0;
@@ -175,6 +186,16 @@ class PaymentListController extends GetxController {
         queryParameters: {'branch_id': branchId, 'user_id': userId},
         isShowLoading: false,
       );
+
+      final List users = res.data['users'] ?? [];
+      coNames.value =
+          users
+              .map((u) => u['full_name']?.toString() ?? '')
+              .where((name) => name.isNotEmpty)
+              .toSet()
+              .cast<String>()
+              .toList();
+
       final data = getPropertyFromJson(res.data, 'data');
       repayment.value = List.from(
         (data as List).map((e) => PaymentModel.fromJson(e)),

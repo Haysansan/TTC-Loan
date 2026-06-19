@@ -25,6 +25,11 @@ class PaidOffController extends GetxController {
 
   final StartController startCtl = Get.find<StartController>();
 
+  final selectedOfficer = RxnString();
+  final RxList<CoRepaymentGroup> coGroups = <CoRepaymentGroup>[].obs;
+  final RxList<CoRepaymentGroup> filteredGroups = <CoRepaymentGroup>[].obs;
+  final RxList<String> coNames = <String>[].obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -46,6 +51,12 @@ class PaidOffController extends GetxController {
   Future<int?> getBranchId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     return SharedPreferencesManager.getIntValue('branch_id');
+  }
+
+  void filterByOfficer(String? name) {
+    selectedOfficer.value = name;
+    filteredGroups.value =
+        name == null ? [] : coGroups.where((g) => g.coName == name).toList();
   }
 
   Future<void> fetchRepayment({
@@ -84,6 +95,27 @@ class PaidOffController extends GetxController {
         queryParameters: params,
         isShowLoading: false,
       );
+
+      final List users = res.data['users'] ?? [];
+      coNames.value =
+          users
+              .map((u) => u['full_name']?.toString() ?? '')
+              .where((name) => name.isNotEmpty)
+              .toSet()
+              .cast<String>()
+              .toList();
+      //grouped filtering
+      coGroups.value =
+          users
+              .map(
+                (u) => CoRepaymentGroup(
+                  coId: u['id'] as int? ?? 0,
+                  coName: u['full_name']?.toString() ?? '',
+                  amount: 0,
+                ),
+              )
+              .where((g) => g.coName.isNotEmpty)
+              .toList();
 
       // Take care of load more error when while load more user switch the tap
       if (startCtl.selectedIndex.value != 3 && isLoadMore) {

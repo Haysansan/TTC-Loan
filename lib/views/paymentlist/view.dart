@@ -43,8 +43,7 @@ class PaymentCollectionView extends GetView<PaymentListController> {
               ),
             ),
             UIConstants.spacing.height,
-
-            const _SearchSection(),
+            if (isCO) _SearchSection() else _FilterSection(),
             UIConstants.spacing.height,
 
             if (isCO)
@@ -146,6 +145,46 @@ class _SearchSection extends StatelessWidget {
           c.fetchpaymentList();
         },
         onSubmitted: (_) => c.fetchpaymentList(),
+      ),
+    );
+  }
+}
+
+class _FilterSection extends StatelessWidget {
+  const _FilterSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Get.find<PaymentListController>();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Filter by CO', style: AppTextStyle.normalPrimaryBold),
+              Obx(() {
+                if (c.selectedOfficer.value == null) return const SizedBox();
+                return GestureDetector(
+                  onTap: () => c.filterByOfficer(null),
+                  child: Text('Clear', style: AppTextStyle.normalRedBold),
+                );
+              }),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Obx(
+            () => SearchDropDown<String>(
+              items: c.coNames,
+              itemAsString: (item) => item,
+              onChanged: c.filterByOfficer,
+              selectedItem: c.selectedOfficer.value,
+              label: 'Search for CO',
+            ),
+          ),
+        ],
       ),
     );
   }

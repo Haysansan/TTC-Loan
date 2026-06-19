@@ -27,6 +27,13 @@ class WrittenoffController extends GetxController {
   final StartController startCtl = Get.find<StartController>();
   final List<WrittenOffModel> _allItems = [];
 
+  final RxList<WrittenOffModel> writtenOffModel = <WrittenOffModel>[].obs;
+
+  final selectedOfficer = RxnString();
+  final RxList<CoRepaymentGroup> coGroups = <CoRepaymentGroup>[].obs;
+  final RxList<CoRepaymentGroup> filteredGroups = <CoRepaymentGroup>[].obs;
+  final RxList<String> coNames = <String>[].obs;
+
   @override
   void onInit() {
     fetchDelivery();
@@ -45,20 +52,30 @@ class WrittenoffController extends GetxController {
     return user_id;
   }
 
-  void searchLocally(String query) {
-    if (query.isEmpty) {
-      repaymentModel.value = List.from(_allItems);
-      return;
+  // void searchLocally(String query) {
+  //   if (query.isEmpty) {
+  //     repaymentModel.value = List.from(_allItems);
+  //     return;
+  //   }
+  //   final q = query.toLowerCase();
+  //   repaymentModel.value =
+  //       _allItems
+  //           .where(
+  //             (c) =>
+  //                 c.client.toLowerCase().contains(q) ||
+  //                 c.client_code.toLowerCase().contains(q),
+  //           )
+  //           .toList();
+  // }
+
+  void filterByOfficer(String? name) {
+    selectedOfficer.value = name;
+    if (name == null) {
+      repaymentModel.value = _allItems;
+    } else {
+      repaymentModel.value =
+          _allItems.where((e) => e.loan_officer == name).toList();
     }
-    final q = query.toLowerCase();
-    repaymentModel.value =
-        _allItems
-            .where(
-              (c) =>
-                  c.client.toLowerCase().contains(q) ||
-                  c.client_code.toLowerCase().contains(q),
-            )
-            .toList();
   }
 
   void goToTab(int index) {
@@ -103,41 +120,25 @@ class WrittenoffController extends GetxController {
   }) async {
     try {
       if (isRefresh) {
-        if (!isFilter) {
-          clearFilter();
-        }
+        if (!isFilter) clearFilter();
         pagination.refresh();
       }
 
-      if (pagination.isEndOfPage) {
-        return;
-      }
-      int? branchId = await getbranchId();
-      int? userId = await getUserId();
-      // Show loading only when first time and filter
+      if (pagination.isEndOfPage) return;
+
       if ((!isRefresh && !isLoadMore) || isFilter) {
         isLoading.value = true;
       }
 
-      final Map<String, dynamic> params = {
-        'branch_id': branchId,
-        'user_id': userId,
-      };
-
-      String endPoint = EndPoints.getWrittenOffList;
-
-      // if (UserRepository.shared.isCo) {
-      // endPoint = EndPoints.getWrittenOffList;
-      // }
+      int? branchId = await getbranchId();
+      int? userId = await getUserId();
 
       final res = await Get.find<ApiService>().get(
-        endPoint,
-        queryParameters: params,
+        EndPoints.getWrittenOffList,
+        queryParameters: {'branch_id': branchId, 'user_id': userId},
         isShowLoading: false,
       );
 
-      // final data = getPropertyFromJson(DatabaseHelper.instance.queryAllRowsRepayments(1),"data");
-      // print(data);
       final data = getPropertyFromJson(res.data, 'data');
       total =
           num.tryParse(
@@ -149,37 +150,53 @@ class WrittenoffController extends GetxController {
             getPropertyFromJson(res.data, 'totalClient')?.toString() ?? '0',
           ) ??
           0;
-      // pagination.checkLoadMore((data as List).length);
 
-      if (isRefresh) {
-        repaymentModel.value = List<WrittenOffModel>.from(
-          (data as List).map((e) => WrittenOffModel.fromJson(e)).toList(),
-        );
-      } else {
-        repaymentModel.addAll(
-          List<WrittenOffModel>.from(
-            (data as List).map((e) => WrittenOffModel.fromJson(e)).toList(),
-          ),
-        );
+      final fetched = List<WrittenOffModel>.from(
+        (data as List).map((e) => WrittenOffModel.fromJson(e)),
+      );
+
+      if (isRefresh || (!isLoadMore && !isFilter)) {
+        repaymentModel.value = fetched;
+      } else if (isLoadMore) {
+        repaymentModel.addAll(fetched);
       }
-      if (!isFilter) {
-        _allItems
-          ..clear()
-          ..addAll(repaymentModel);
-      } else {
-        repaymentModel.addAll(
-          List<WrittenOffModel>.from(
-            (data as List).map((e) => WrittenOffModel.fromJson(e)).toList(),
-          ),
-        );
-      }
+
+      _allItems
+        ..clear()
+        ..addAll(repaymentModel);
+
+      coNames.value =
+          _allItems
+              .map((e) => e.loan_officer)
+              .where((name) => name.isNotEmpty && name != 'N/A')
+              .toSet()
+              .cast<String>()
+              .toList()
+            ..sort();
     } catch (e) {
-      if (isClosed) {
-        return;
-      }
+      if (isClosed) return;
       ExceptionHandler.handleException(e);
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchWrittenOffSearch({
+    bool isRefresh = false,
+    bool isFilter = false,
+  }) async {
+    if (isFilter) {
+      final searchText = searchCtl.text.toLowerCase();
+      repaymentModel.value =
+          _allItems
+              .where(
+                (item) =>
+                    item.client.toLowerCase().contains(searchText) ||
+                    item.client_code.toLowerCase().contains(searchText),
+              )
+              .toList();
+    } else {
+      onRefresh();
     }
   }
 

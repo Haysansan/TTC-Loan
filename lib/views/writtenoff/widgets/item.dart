@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:apploan/core/core.dart';
 import 'package:apploan/models/models.dart';
+import 'package:apploan/views/views.dart';
 
 class WrittenoffWidget extends StatelessWidget {
   const WrittenoffWidget({Key? key, required this.woLoan}) : super(key: key);
@@ -11,10 +12,19 @@ class WrittenoffWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap:
-          () => BottomSheetManager.custom(
-            content: WrittenoffSheet(woLoan: woLoan),
-          ),
+      onTap: () {
+        if (UserRepository.shared.isCO) {
+          BottomSheetManager.custom(content: WrittenoffSheet(woLoan: woLoan));
+        } else {
+          showModalBottomSheet(
+            context: context,
+            backgroundColor: Colors.transparent,
+            isScrollControlled: true,
+            barrierColor: Colors.black54,
+            builder: (_) => WrittenOffReadOnlySheet(woLoan: woLoan),
+          );
+        }
+      },
       child: Container(
         padding: 12.padAll,
         decoration: BoxDecoration(

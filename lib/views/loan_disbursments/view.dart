@@ -56,9 +56,7 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
                     child: Obx(() {
                       if (controller.isLoadingClients.value) {
                         return const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColor.red,
-                          ),
+                          child: CircularProgressIndicator(color: AppColor.red),
                         );
                       }
                       return SearchDropDown<ClientDisbModel>(
@@ -112,8 +110,7 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
                               hintText: LocaleKeys.dateFrequency.tr,
                               items: controller.frequencyTypeList,
                               onChanged: controller.onFrequencyChanged,
-                              initValue:
-                                  controller.selectedFrequency.value?.id,
+                              initValue: controller.selectedFrequency.value?.id,
                               validator: (v) => FormValidator.empty(v),
                             ),
                           ),
@@ -130,9 +127,7 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
                     child: Obx(() {
                       if (controller.isLoadingProducts.value) {
                         return const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColor.red,
-                          ),
+                          child: CircularProgressIndicator(color: AppColor.red),
                         );
                       }
                       return CustomDropdown(
@@ -226,7 +221,6 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
                       ],
                     );
                   }),
-                  
 
                   // Daily Income | Total Debt
                   Row(
@@ -272,7 +266,7 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
                       ),
                     ],
                   ),
-                 
+
                   // Loan Purpose
                   LabeledField(
                     label: LocaleKeys.loanPurpose.tr,
@@ -280,9 +274,7 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
                     child: Obx(() {
                       if (controller.isLoadingLoanPurpose.value) {
                         return const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColor.red,
-                          ),
+                          child: CircularProgressIndicator(color: AppColor.red),
                         );
                       }
                       return SearchDropDown<LoanPurposeModel>(
@@ -307,7 +299,7 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
                       ),
                     ),
                   ),
-               
+
                   // First Repayment Date
                   LabeledField(
                     label: LocaleKeys.firstrepaymentdate.tr,
@@ -323,15 +315,44 @@ class LoanDisbursmentsView extends GetView<LoanDisbursmentsController> {
                   ),
                   UIConstants.spacing.height,
 
-                  PrimaryButton(
-                    text: LocaleKeys.submit.tr,
-                    onPressed: () async {
-                      if (!controller.formKey.currentState!.validate()) return;
-                      controller.formKey.currentState!.save();
-                      await controller.submitBooking();
+                  // normal primary button for all role
+                  // PrimaryButton(
+                  //   text: LocaleKeys.submit.tr,
+                  //   onPressed: () async {
+                  //     if (!controller.formKey.currentState!.validate()) return;
+                  //     controller.formKey.currentState!.save();
+                  //     await controller.submitBooking();
+                  //   },
+                  // ),
+                  Builder(
+                    builder: (context) {
+                      final canSubmit = UserRepository.shared.isCO;
+                      return Opacity(
+                        opacity: canSubmit ? 1.0 : 0.4,
+                        child: PrimaryButton(
+                          text: LocaleKeys.submit.tr,
+                          onPressed: () async {
+                            if (!canSubmit) {
+                              final role =
+                                  UserRepository.shared.isBM
+                                      ? 'Branch Manager'
+                                      : 'CEO';
+                              DialogManager.showDialog(
+                                title: 'Access Denied',
+                                subTitle:
+                                    '$role does not have permission to create disbursement.',
+                              );
+                              return;
+                            }
+                            if (!controller.formKey.currentState!.validate())
+                              return;
+                            controller.formKey.currentState!.save();
+                            await controller.submitBooking();
+                          },
+                        ),
+                      );
                     },
                   ),
-
                   30.height,
                 ],
               ),

@@ -12,6 +12,8 @@ class RepaymentView extends GetView<RepaymentController> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCO = UserRepository.shared.isCO;
+
     return Scaffold(
       appBar: CustomAppBar(
         title: LocaleKeys.repayment.tr,
@@ -29,7 +31,7 @@ class RepaymentView extends GetView<RepaymentController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const _SummarySection(),
-            _SearchSection(),
+            if (isCO) _SearchSection() else _FilterSection(),
             if (controller.repaymentModel.isEmpty)
               const Expanded(child: NoDataWidget())
             else
@@ -181,6 +183,46 @@ class _SearchSection extends StatelessWidget {
           c.setSearchValue();
           c.fetchRepaymentSearch(isRefresh: true, isFilter: true);
         },
+      ),
+    );
+  }
+}
+
+class _FilterSection extends StatelessWidget {
+  const _FilterSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Get.find<RepaymentController>();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Filter by CO', style: AppTextStyle.normalPrimaryBold),
+              Obx(() {
+                if (c.selectedOfficer.value == null) return const SizedBox();
+                return GestureDetector(
+                  onTap: () => c.filterByOfficer(null),
+                  child: Text('Clear', style: AppTextStyle.normalRedBold),
+                );
+              }),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Obx(
+            () => SearchDropDown<String>(
+              items: c.coNames,
+              itemAsString: (item) => item,
+              onChanged: c.filterByOfficer,
+              selectedItem: c.selectedOfficer.value,
+              label: 'Search for CO',
+            ),
+          ),
+        ],
       ),
     );
   }

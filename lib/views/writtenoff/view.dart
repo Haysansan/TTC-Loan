@@ -12,6 +12,8 @@ class WrittenoffView extends GetView<WrittenoffController> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isCO = UserRepository.shared.isCO;
+
     return Scaffold(
       appBar: CustomAppBar(
         title: LocaleKeys.writtenoff.tr,
@@ -29,21 +31,7 @@ class WrittenoffView extends GetView<WrittenoffController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const _SummarySection(),
-            Padding(
-              padding: UIConstants.spacing.padHorizontal,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  UIConstants.spacing.height,
-                  SearchField(
-                    controller: controller.searchCtl,
-                    hintText: LocaleKeys.searchByCIDName.tr,
-                    onClear: controller.clearSearch,
-                    onSubmitted: controller.searchLocally,
-                  ),
-                ],
-              ),
-            ),
+            if (isCO) _SearchSection() else _FilterSection(),
             if (controller.repaymentModel.isEmpty)
               const Expanded(child: NoDataWidget())
             else
@@ -115,6 +103,7 @@ class _SummarySection extends StatelessWidget {
         user: UserRepository.shared,
         totalCount: totalCount,
         totalAmount: totalAmount,
+        coCount: c.coNames.length,
       );
 
       return Padding(
@@ -131,6 +120,7 @@ class _SummarySection extends StatelessWidget {
     required UserRepository user,
     required int totalCount,
     required double totalAmount,
+    required int coCount,
   }) {
     if (user.isCO) {
       return SummaryCardConfig.forCO(
@@ -143,8 +133,8 @@ class _SummarySection extends StatelessWidget {
     }
     if (user.isBM) {
       return SummaryCardConfig.forBM(
-        collectedCOs: totalCount,
-        totalCOs: totalCount,
+        collectedCOs: coCount,
+        totalCOs: coCount,
         totalRepaymentUsd: totalAmount,
         collectedUsd: totalAmount,
       );
@@ -155,6 +145,70 @@ class _SummarySection extends StatelessWidget {
       totalBMs: totalCount,
       totalRepaymentUsd: totalAmount,
       collectedUsd: totalAmount,
+    );
+  }
+}
+
+class _SearchSection extends StatelessWidget {
+  const _SearchSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Get.find<WrittenoffController>();
+    return Padding(
+      padding: UIConstants.spacing.padHorizontal,
+      child: SearchField(
+        controller: c.searchCtl,
+        hintText: LocaleKeys.searchByCIDName.tr,
+        onClear: () {
+          c.clearFilter();
+          c.fetchWrittenOffSearch(isRefresh: true, isFilter: false);
+        },
+        onSubmitted: (_) {
+          c.setSearchValue();
+          c.fetchWrittenOffSearch(isRefresh: true, isFilter: true);
+        },
+      ),
+    );
+  }
+}
+
+class _FilterSection extends StatelessWidget {
+  const _FilterSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = Get.find<WrittenoffController>();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Filter by CO', style: AppTextStyle.normalPrimaryBold),
+              Obx(() {
+                if (c.selectedOfficer.value == null) return const SizedBox();
+                return GestureDetector(
+                  onTap: () => c.filterByOfficer(null),
+                  child: Text('Clear', style: AppTextStyle.normalRedBold),
+                );
+              }),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Obx(
+            () => SearchDropDown<String>(
+              items: c.coNames,
+              itemAsString: (item) => item,
+              onChanged: c.filterByOfficer,
+              selectedItem: c.selectedOfficer.value,
+              label: 'Search for CO',
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
