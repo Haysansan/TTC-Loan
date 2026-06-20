@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apploan/core/core.dart';
 import 'package:apploan/views/views.dart';
-import 'package:apploan/models/models.dart';
+import 'package:intl/intl.dart';
 
 class PaymentCollectionView extends GetView<PaymentListController> {
   const PaymentCollectionView({Key? key}) : super(key: key);
@@ -19,40 +19,86 @@ class PaymentCollectionView extends GetView<PaymentListController> {
           final startCtl = Get.find<StartController>();
           startCtl.changeMenu(startCtl.previousIndex.value);
         },
+        actions:
+            isCO
+                ? [
+                  IconButton(
+                    icon: const Icon(Icons.search, color: Colors.white),
+                    onPressed: controller.toggleSearch,
+                  ),
+                ]
+                : null,
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          UIConstants.midSpacing.height,
+          Obx(() {
+            final collected = controller.collectedSumRaw.value;
+            final totalRepayment = controller.totalRepaymentRaw.value;
+            final uncollected = totalRepayment - collected;
+            final totalClients =
+                int.tryParse(controller.totalClient.text) ?? 0;
+            final uncollectedClients =
+                totalClients - controller.collectedClients.value;
+            final collectedPercent =
+                totalRepayment == 0
+                    ? 0
+                    : ((collected / totalRepayment) * 100).clamp(0, 100);
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            UIConstants.midSpacing.height,
-            Obx(
-              () => CustomSummaryCard(
-                mode: SummaryCardMode.collectedUncollected,
-                config: SummaryCardConfig.forCO(
-                  collectedClients: controller.collectedClients.value,
-                  totalClients: int.tryParse(controller.totalClient.text) ?? 0,
-                  totalRepaymentUsd: controller.totalRepaymentRaw.value,
-                  collectedUsd: controller.collectedSumRaw.value,
-                  exchangeRate: controller.exchangeRate.value,
-                  onTap: () => Get.toNamed(Routes.customers),
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: GestureDetector(
+                onTap: () => Get.toNamed(Routes.customers),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFFFF0000),
+                        Color(0xFFFF8386),
+                        Color(0xFFFF0000),
+                      ],
+                    ),
+                  ),
+                  child: GlassStatsCard(
+                    header:
+                        '${collectedPercent.toStringAsFixed(0)}% Collected vs Plan',
+                    left: GlassStatItem(
+                      label: LocaleKeys.collected.tr,
+                      value: '៛${NumberFormat('#,##0').format(collected)}',
+                      count: '${controller.collectedClients.value} paid',
+                    ),
+                    right: GlassStatItem(
+                      label: LocaleKeys.unCollected.tr,
+                      value: '៛${NumberFormat('#,##0').format(uncollected)}',
+                      count: '$uncollectedClients expected',
+                    ),
+                  ),
                 ),
               ),
-            ),
-            UIConstants.spacing.height,
-            if (isCO) _SearchSection() else _FilterSection(),
-            UIConstants.spacing.height,
+            );
+          }),
+          UIConstants.spacing.height,
+          if (isCO)
+            Obx(
+              () =>
+                  controller.isSearchVisible.value
+                      ? _SearchSection()
+                      : const SizedBox.shrink(),
+            )
+          else
+            _FilterSection(),
+          UIConstants.spacing.height,
 
-            if (isCO)
-              _CoList(controller: controller)
-            else
-              _BmList(controller: controller),
-          ],
-        );
-      }),
+          if (isCO)
+            _CoList(controller: controller)
+          else
+            _BmList(controller: controller),
+        ],
+      ),
     );
   }
 }
@@ -64,17 +110,17 @@ class _CoList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
+    return Expanded(
+      child: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-      if (controller.isDone && controller.repayment.isEmpty) {
-        return NoDataWidget(text: LocaleKeys.searchNotFound.tr);
-      }
+        if (controller.isDone && controller.repayment.isEmpty) {
+          return NoDataWidget(text: LocaleKeys.searchNotFound.tr);
+        }
 
-      return Expanded(
-        child: ListView.builder(
+        return ListView.builder(
           padding: UIConstants.spacing.padHorizontal,
           itemCount: controller.repayment.length,
           itemBuilder:
@@ -84,9 +130,9 @@ class _CoList extends StatelessWidget {
                 tracking: controller.repayment[i],
                 controller: controller,
               ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 }
 
@@ -97,21 +143,17 @@ class _BmList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      if (controller.isLoading.value) {
-        return const Expanded(
-          child: Center(child: CircularProgressIndicator()),
-        );
-      }
+    return Expanded(
+      child: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-      if (controller.repayment.isEmpty) {
-        return Expanded(
-          child: NoDataWidget(text: LocaleKeys.searchNotFound.tr),
-        );
-      }
+        if (controller.repayment.isEmpty) {
+          return NoDataWidget(text: LocaleKeys.searchNotFound.tr);
+        }
 
-      return Expanded(
-        child: AbsorbPointer(
+        return AbsorbPointer(
           child: ListView.builder(
             padding: UIConstants.spacing.padHorizontal,
             itemCount: controller.repayment.length,
@@ -123,9 +165,9 @@ class _BmList extends StatelessWidget {
                   controller: controller,
                 ),
           ),
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 }
 

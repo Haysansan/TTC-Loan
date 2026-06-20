@@ -53,13 +53,13 @@ class DashboardSummaryCard2 extends StatelessWidget {
         children: [
           _CardHeader(companyName: companyName, userName: userName),
           12.height,
-          _GlassStatsCard(
-            left: _StatItem(
+          GlassStatsCard(
+            left: GlassStatItem(
               label: 'Overdue',
               value: '$currencySymbol${_noDecimals(summary.overdueAmount)}',
               count: '${summary.overdueClients} $entityLabel',
             ),
-            right: _StatItem(
+            right: GlassStatItem(
               label: 'Outstanding',
               value:
                   '$currencySymbol${_noDecimals(summary.totalOutstanding)}',
@@ -67,13 +67,13 @@ class DashboardSummaryCard2 extends StatelessWidget {
             ),
           ),
           8.height,
-          _GlassStatsCard(
-            left: _StatItem(
+          GlassStatsCard(
+            left: GlassStatItem(
               label: 'Collected',
               value: '$currencySymbol${_noDecimals(summary.repayDue)}',
               count: '${summary.paidClients} paid',
             ),
-            right: _StatItem(
+            right: GlassStatItem(
               label: 'Plan',
               value: '$currencySymbol${_noDecimals(summary.expectedAmount)}',
               count: '${summary.expectedClients} expected',
@@ -146,8 +146,8 @@ class _CardHeader extends StatelessWidget {
   }
 }
 
-class _StatItem {
-  const _StatItem({
+class GlassStatItem {
+  const GlassStatItem({
     required this.label,
     required this.value,
     required this.count,
@@ -158,11 +158,12 @@ class _StatItem {
   final String count;
 }
 
-class _GlassStatsCard extends StatelessWidget {
-  const _GlassStatsCard({required this.left, required this.right});
+class GlassStatsCard extends StatelessWidget {
+  const GlassStatsCard({required this.left, required this.right, this.header});
 
-  final _StatItem left;
-  final _StatItem right;
+  final GlassStatItem left;
+  final GlassStatItem right;
+  final String? header;
 
   @override
   Widget build(BuildContext context) {
@@ -178,17 +179,33 @@ class _GlassStatsCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1),
           ),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: _StatColumn(item: left)),
-              Container(
-                width: 1,
-                height: 44,
-                margin: const EdgeInsets.symmetric(horizontal: 12),
-                color: Colors.white.withValues(alpha: 0.25),
+              if (header != null) ...[
+                Text(
+                  header!,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                8.height,
+              ],
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: _StatColumn(item: left)),
+                  Container(
+                    width: 1,
+                    height: 44,
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    color: Colors.white.withValues(alpha: 0.25),
+                  ),
+                  Expanded(child: _StatColumn(item: right)),
+                ],
               ),
-              Expanded(child: _StatColumn(item: right)),
             ],
           ),
         ),
@@ -200,7 +217,7 @@ class _GlassStatsCard extends StatelessWidget {
 class _StatColumn extends StatelessWidget {
   const _StatColumn({required this.item});
 
-  final _StatItem item;
+  final GlassStatItem item;
 
   @override
   Widget build(BuildContext context) {

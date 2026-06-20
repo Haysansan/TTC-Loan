@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:apploan/core/core.dart';
 import 'package:apploan/models/models.dart';
 import 'package:apploan/views/views.dart';
+import 'package:intl/intl.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart' as pull;
 
 class PaidOffView extends GetView<PaidOffController> {
@@ -20,6 +21,15 @@ class PaidOffView extends GetView<PaidOffController> {
           final startCtl = Get.find<StartController>();
           startCtl.changeMenu(startCtl.previousIndex.value);
         },
+        actions:
+            isCO
+                ? [
+                  IconButton(
+                    icon: const Icon(Icons.search, color: Colors.white),
+                    onPressed: controller.toggleSearch,
+                  ),
+                ]
+                : null,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -34,7 +44,15 @@ class PaidOffView extends GetView<PaidOffController> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const _SummarySection(),
-            if (isCO) _SearchSection() else _FilterSection(),
+            if (isCO)
+              Obx(
+                () =>
+                    controller.isSearchVisible.value
+                        ? _SearchSection()
+                        : const SizedBox.shrink(),
+              )
+            else
+              _FilterSection(),
 
             if (paidoffItems.isEmpty)
               const Expanded(child: NoDataWidget())
@@ -161,52 +179,45 @@ class _SummarySection extends StatelessWidget {
         );
       }
 
-      final totalCount = int.tryParse(c.totalClient.text) ?? 0;
-      final totalAmount = double.tryParse(c.totalAmount.text) ?? 0.0;
-
-      final config = _buildConfig(
-        user: UserRepository.shared,
-        totalCount: totalCount,
-        totalAmount: totalAmount,
-      );
+      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      final paidOffTodayCount =
+          c.repaymentModels
+              .where((m) => m.last_payment_date.startsWith(today))
+              .length;
 
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: CustomSummaryCard(
-          mode: SummaryCardMode.totalRepayment,
-          config: config,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: GestureDetector(
+          onTap: () => Get.toNamed(Routes.customers),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFFF0000),
+                  Color(0xFFFF8386),
+                  Color(0xFFFF0000),
+                ],
+              ),
+            ),
+            child: GlassStatsCard(
+              left: GlassStatItem(
+                label: 'Paid Off Today',
+                value: paidOffTodayCount.toString(),
+                count: '',
+              ),
+              right: GlassStatItem(
+                label: 'Total Active',
+                value:
+                    '៛${NumberFormat('#,##0').format(c.totalActiveAmount.value)}',
+                count: '${c.totalActiveClients.value} active clients',
+              ),
+            ),
+          ),
         ),
       );
     });
-  }
-
-  SummaryCardConfig _buildConfig({
-    required UserRepository user,
-    required int totalCount,
-    required double totalAmount,
-  }) {
-    if (user.isCO) {
-      return SummaryCardConfig.forCO(
-        collectedClients: totalCount,
-        totalClients: totalCount,
-        totalRepaymentUsd: totalAmount,
-        collectedUsd: totalAmount,
-        onTap: () => Get.toNamed(Routes.customers),
-      );
-    }
-    if (user.isBM) {
-      return SummaryCardConfig.forBM(
-        collectedCOs: totalCount,
-        totalCOs: totalCount,
-        totalRepaymentUsd: totalAmount,
-        collectedUsd: totalAmount,
-      );
-    }
-    return SummaryCardConfig.forCEO(
-      collectedBMs: totalCount,
-      totalBMs: totalCount,
-      totalRepaymentUsd: totalAmount,
-      collectedUsd: totalAmount,
-    );
   }
 }

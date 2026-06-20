@@ -3,6 +3,7 @@ import 'package:apploan/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apploan/core/core.dart';
+import 'package:apploan/views/customers/widgets/customer_detail_view.dart';
 
 class CustomersItemWidget extends StatelessWidget {
   const CustomersItemWidget({Key? key, required this.client}) : super(key: key);
@@ -32,20 +33,25 @@ class CustomersItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColor.white,
+    return Material(
+      color: AppColor.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColor.black.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+        onTap: () => Get.to(() => CustomerDetailView(client: client)),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColor.black.withValues(alpha: 0.06),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-        ],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Stack(
+          padding: const EdgeInsets.all(12),
+          child: Stack(
         children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,8 +120,10 @@ class CustomersItemWidget extends StatelessWidget {
               ),
             ],
           ),
-          Positioned(top: 0, right: 0, child: _trailing()),
-        ],
+              Positioned(top: 0, right: 0, child: _trailing()),
+            ],
+          ),
+        ),
       ),
     );
   }

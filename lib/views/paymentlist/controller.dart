@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 
 class PaymentListController extends GetxController {
   final TextEditingController searchCtl = TextEditingController();
+  final RxBool isSearchVisible = false.obs;
   final selectedOfficer = RxnString();
   final RxList<CoRepaymentGroup> coGroups = <CoRepaymentGroup>[].obs;
   final RxList<CoRepaymentGroup> filteredGroups = <CoRepaymentGroup>[].obs;
@@ -43,7 +44,6 @@ class PaymentListController extends GetxController {
     } else {
       fetchpaymentListFromApi();
     }
-    print('PaymentListController CREATED');
     super.onInit();
   }
 
@@ -57,9 +57,7 @@ class PaymentListController extends GetxController {
   @override
   void onClose() {
     searchCtl.dispose();
-    fetchpaymentList();
     super.onClose();
-    print('PaymentListController DESTROYED');
   }
 
   Future<int?> getbranchId() async {
@@ -98,6 +96,14 @@ class PaymentListController extends GetxController {
 
   void clearFilter() {
     searchCtl.text = '';
+  }
+
+  void toggleSearch() {
+    isSearchVisible.value = !isSearchVisible.value;
+    if (!isSearchVisible.value) {
+      clearFilter();
+      fetchpaymentList();
+    }
   }
 
   Future<void> fetchpaymentList() async {

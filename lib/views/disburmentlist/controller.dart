@@ -7,6 +7,7 @@ import 'package:apploan/views/views.dart';
 
 class DisburmentListController extends GetxController {
   final TextEditingController searchCtl = TextEditingController();
+  final RxBool isSearchVisible = false.obs;
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final RxList<DisbursementListModel> disburment =
       <DisbursementListModel>[].obs;
@@ -76,6 +77,14 @@ class DisburmentListController extends GetxController {
 
   void clearFilter() {
     searchCtl.text = '';
+  }
+
+  void toggleSearch() {
+    isSearchVisible.value = !isSearchVisible.value;
+    if (!isSearchVisible.value) {
+      clearFilter();
+      filterByName();
+    }
   }
 
   Future<void> fetchDisburmentList() async {

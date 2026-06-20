@@ -17,6 +17,7 @@ class WrittenoffController extends GetxController {
   final TextEditingController startBillFinishDateCtl = TextEditingController();
   final TextEditingController endBillFinishDateCtl = TextEditingController();
   final TextEditingController searchCtl = TextEditingController();
+  final RxBool isSearchVisible = false.obs;
   final RxList<WrittenOffModel> repaymentModel = <WrittenOffModel>[].obs;
   final RxBool isLoading = false.obs;
   final PaginationModel pagination = PaginationModel(limit: 15);
@@ -300,6 +301,14 @@ class WrittenoffController extends GetxController {
     endBillCreateDateCtl.clear();
     startBillFinishDateCtl.clear();
     endBillCreateDateCtl.clear();
+  }
+
+  void toggleSearch() {
+    isSearchVisible.value = !isSearchVisible.value;
+    if (!isSearchVisible.value) {
+      clearFilter();
+      fetchWrittenOffSearch(isRefresh: true, isFilter: false);
+    }
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:apploan/core/core.dart';
 import 'package:apploan/models/models.dart';
 import 'package:apploan/views/views.dart';
+import 'package:intl/intl.dart';
 
 class DisburmentListView extends GetView<DisburmentListController> {
   const DisburmentListView({Key? key}) : super(key: key);
@@ -16,6 +17,15 @@ class DisburmentListView extends GetView<DisburmentListController> {
       appBar: CustomAppBar(
         title: LocaleKeys.loanDisbursmentsList.tr,
         onBack: () => Get.offAllNamed(Routes.start),
+        actions:
+            isCO
+                ? [
+                  IconButton(
+                    icon: const Icon(Icons.search, color: Colors.white),
+                    onPressed: controller.toggleSearch,
+                  ),
+                ]
+                : null,
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -27,7 +37,15 @@ class DisburmentListView extends GetView<DisburmentListController> {
           children: [
             const _SummarySection(),
             UIConstants.spacing.height,
-            if (isCO) _SearchSection() else _FilterSection(),
+            if (isCO)
+              Obx(
+                () =>
+                    controller.isSearchVisible.value
+                        ? _SearchSection()
+                        : const SizedBox.shrink(),
+              )
+            else
+              _FilterSection(),
             UIConstants.spacing.height,
             _DisbursementList(
               items: controller.disburment,
@@ -58,52 +76,44 @@ class _SummarySection extends StatelessWidget {
       final totalClients = int.tryParse(c.totalClient.text) ?? 0;
       final totalAmount =
           double.tryParse(c.totalAmount.text.replaceAll(',', '')) ?? 0;
-
-      final config = _buildConfig(
-        user: UserRepository.shared,
-        totalCount: totalClients,
-        totalDisbursementUsd: totalAmount,
-      );
+      final pendingApprovalCount =
+          c.disburment
+              .where((m) => m.loan_status.toLowerCase().contains('waiting'))
+              .length;
 
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: CustomSummaryCard(
-          mode: SummaryCardMode.totalDisbursement,
-          config: config,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        child: GestureDetector(
+          onTap: () => Get.toNamed(Routes.customers),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFFF0000),
+                  Color(0xFFFF8386),
+                  Color(0xFFFF0000),
+                ],
+              ),
+            ),
+            child: GlassStatsCard(
+              left: GlassStatItem(
+                label: LocaleKeys.totalDisbursement.tr,
+                value: '៛${NumberFormat('#,##0').format(totalAmount)}',
+                count: '$totalClients clients',
+              ),
+              right: GlassStatItem(
+                label: 'Pending Approval',
+                value: pendingApprovalCount.toString(),
+                count: 'waiting',
+              ),
+            ),
+          ),
         ),
       );
     });
-  }
-
-  SummaryCardConfig _buildConfig({
-    required UserRepository user,
-    required int totalCount,
-    required double totalDisbursementUsd,
-  }) {
-    if (user.isCO) {
-      return SummaryCardConfig.forCO(
-        collectedClients: 0,
-        totalClients: totalCount,
-        totalRepaymentUsd: totalDisbursementUsd,
-        collectedUsd: 0,
-        onTap: () => Get.toNamed(Routes.customers),
-      );
-    }
-    if (user.isBM) {
-      return SummaryCardConfig.forBM(
-        collectedCOs: 0,
-        totalCOs: totalCount,
-        totalRepaymentUsd: totalDisbursementUsd,
-        collectedUsd: 0,
-      );
-    }
-    // user.isEco
-    return SummaryCardConfig.forCEO(
-      collectedBMs: 0,
-      totalBMs: totalCount,
-      totalRepaymentUsd: totalDisbursementUsd,
-      collectedUsd: 0,
-    );
   }
 }
 

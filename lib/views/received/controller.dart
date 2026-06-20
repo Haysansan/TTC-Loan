@@ -164,6 +164,15 @@ class ReceivedController extends GetxController {
   final RxDouble totalKhr = 0.0.obs;
   final RxInt totalCOs = 0.obs;
 
+  // Fixed at fetch time; used to compare against amount received so far.
+  final RxDouble totalTransferKhr = 0.0.obs;
+  final RxDouble receivedKhr = 0.0.obs;
+
+  double get receivedPercentage {
+    if (totalTransferKhr.value == 0) return 0;
+    return (receivedKhr.value / totalTransferKhr.value * 100).clamp(0, 100);
+  }
+
   @override
   void onInit() {
     super.onInit();
@@ -209,6 +218,8 @@ class ReceivedController extends GetxController {
               .toList();
 
       totalKhr.value = coGroups.fold(0.0, (sum, g) => sum + g.amount);
+      totalTransferKhr.value = totalKhr.value;
+      receivedKhr.value = 0;
     } catch (e) {
       DialogManager.showDialog(
         title: LocaleKeys.error.tr,
@@ -240,6 +251,7 @@ class ReceivedController extends GetxController {
       coGroups.remove(group);
       filteredGroups.remove(group);
       totalKhr.value -= group.amount;
+      receivedKhr.value += group.amount;
     } catch (e) {
       DialogManager.showDialog(
         title: LocaleKeys.error.tr,

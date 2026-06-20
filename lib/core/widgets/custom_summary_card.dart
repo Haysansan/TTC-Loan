@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'dart:math' as math;
 
-enum SummaryCardMode { totalRepayment, collectedUncollected, totalDisbursement }
+enum SummaryCardMode { totalRepayment, totalDisbursement }
 
 class CustomSummaryCard extends StatelessWidget {
   const CustomSummaryCard({Key? key, required this.mode, required this.config})
@@ -95,7 +95,7 @@ class CustomSummaryCard extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 13,
+                  fontSize: 16,
                   fontWeight: FontWeight.w500,
                   height: 1.1,
                 ),
@@ -120,12 +120,7 @@ class CustomSummaryCard extends StatelessWidget {
   Widget _buildRightSection() {
     final bool hasData = config.totalCount > 0;
     final rightTotal = config.coTotal ?? config.totalCount;
-    final clientsLabel =
-        hasData
-            ? mode == SummaryCardMode.collectedUncollected
-                ? '${config.collectedCount.toString().padLeft(2, '0')}/${rightTotal.toString().padLeft(2, '0')}'
-                : rightTotal.toString().padLeft(2, '0')
-            : '00';
+    final clientsLabel = hasData ? rightTotal.toString().padLeft(2, '0') : '00';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +144,7 @@ class CustomSummaryCard extends StatelessWidget {
                 child: const Icon(
                   Icons.people_alt,
                   color: Colors.white,
-                  size: 22,
+                  size: 16,
                 ),
               ),
               const SizedBox(width: 10),
@@ -160,7 +155,7 @@ class CustomSummaryCard extends StatelessWidget {
                     config.countLabel,
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
-                      fontSize: 13,
+                      fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -188,10 +183,8 @@ class CustomSummaryCard extends StatelessWidget {
 
         if (mode == SummaryCardMode.totalRepayment)
           _buildTotalRepaymentSection()
-        else if (mode == SummaryCardMode.totalDisbursement)
-          _buildTotalDisbursementSection()
         else
-          _buildCollectedUncollectedSection(),
+          _buildTotalDisbursementSection(),
       ],
     );
   }
@@ -201,7 +194,7 @@ class CustomSummaryCard extends StatelessWidget {
     return _buildAmountRow(
       label: LocaleKeys.totalRepayment.tr,
       primary: _toKhr(pendingAmount),
-      primaryFontSize: 22,
+      primaryFontSize: 16,
     );
   }
 
@@ -209,31 +202,7 @@ class CustomSummaryCard extends StatelessWidget {
     return _buildAmountRow(
       label: LocaleKeys.totalDisbursement.tr,
       primary: _toKhr(config.totalRepaymentUsd),
-      primaryFontSize: 22,
-    );
-  }
-
-  Widget _buildCollectedUncollectedSection() {
-    final uncollectedUsd = config.totalRepaymentUsd - config.collectedUsd;
-    final uncollectedCount = config.totalCount - config.collectedCount;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildAmountRow(
-          label: LocaleKeys.collected.tr,
-          primary: _toKhr(config.collectedUsd),
-          secondary: '${config.collectedCount} paid',
-        ),
-        const SizedBox(height: 10),
-        _buildDivider(vertical: false),
-        const SizedBox(height: 10),
-        _buildAmountRow(
-          label: LocaleKeys.unCollected.tr,
-          primary: _toKhr(uncollectedUsd),
-          secondary: '$uncollectedCount expected',
-        ),
-      ],
+      primaryFontSize: 16,
     );
   }
 
@@ -251,7 +220,7 @@ class CustomSummaryCard extends StatelessWidget {
           label,
           style: TextStyle(
             color: Colors.white.withOpacity(0.9),
-            fontSize: 12,
+            fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -278,7 +247,7 @@ class CustomSummaryCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: Colors.white.withOpacity(0.75),
-              fontSize: 11,
+              fontSize: 16,
             ),
           ),
         ],
@@ -287,7 +256,7 @@ class CustomSummaryCard extends StatelessWidget {
             secondary,
             style: TextStyle(
               color: Colors.white.withOpacity(0.8),
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -365,17 +334,6 @@ class _ArcPainter extends CustomPainter {
 //   mode: SummaryCardMode.totalRepayment,
 //   collectedClients: 0, // placeholder until backend ready
 //   totalClients: controller.clientCount,
-//   totalRepaymentUsd: controller.totalRepaymentUsd,
-//   collectedUsd: controller.collectedUsd,
-//   exchangeRate: controller.exchangeRate,
-//   onClientsTap: ...,
-// )
-
-// collected / un-collected
-// CustomSummaryCard(
-//   mode: SummaryCardMode.collectedUncollected,
-//   collectedClients: controller.collectedClients,
-//   totalClients: controller.totalClients,
 //   totalRepaymentUsd: controller.totalRepaymentUsd,
 //   collectedUsd: controller.collectedUsd,
 //   exchangeRate: controller.exchangeRate,
