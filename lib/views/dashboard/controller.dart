@@ -30,6 +30,7 @@ class DashboardController extends GetxController {
   final RxInt overdueCOCount = 0.obs;
   final RxString loanOutstanding = '\$0.00'.obs;
   final RxString overdueAmountStr = '\$0.00'.obs;
+  final RxString principal = '\$0.00'.obs;
   final RxInt collectedCOCount = 0.obs;
   final RxString totalToCollect = '\$0.00'.obs;
   final RxString totalCollected = '\$0.00'.obs;
@@ -266,7 +267,7 @@ class DashboardController extends GetxController {
         NumberFormat('#,##0.00').format(amount);
     final double rate = exchangeRate.value;
 
-    activeCOCount.value = coSummaries.length;
+    activeCOCount.value = coSummaries.fold(0, (sum, c) => sum + c.activeClients);
     overdueCOCount.value =
         coSummaries.where((c) => c.overdueClients > 0).length;
     // collectedCOCount.value = coSummaries.where((c) => c.paidClients > 0).length;
@@ -276,6 +277,10 @@ class DashboardController extends GetxController {
       (sum, c) => sum + c.totalOutstanding,
     );
     final overdueSum = coSummaries.fold(0.0, (sum, c) => sum + c.overdueAmount);
+    final principalSum = coSummaries.fold(
+      0.0,
+      (sum, c) => sum + c.totalOutstanding,
+    );
     final toCollectSum = coSummaries.fold(0.0, (sum, c) => sum + c.repayDue);
     // final collectedAmountSum = coSummaries.fold(
     //   0.0,
@@ -294,6 +299,7 @@ class DashboardController extends GetxController {
 
     loanOutstanding.value = _formatAmount(outstandingSum);
     overdueAmountStr.value = _formatAmount(overdueSum);
+    principal.value =  _formatAmount(principalSum);
     totalToCollect.value = _formatAmount(toCollectSum);
     totalCollected.value =
         '${_formatAmount(toCollectSum)} / ${_formatAmount(totalAmountSum)}';
@@ -428,25 +434,26 @@ class DashboardController extends GetxController {
         NumberFormat('#,##0.00').format(amount);
 
     final paidClientsSum = coSummaries.fold(0, (sum, c) => sum + c.paidClients);
-    final totalClientsSum = coSummaries.fold(
+    final expectedClientsSum = coSummaries.fold(
       0,
-      (sum, c) => sum + c.totalClients,
+      (sum, c) => sum + c.expectedClients,
     );
     final repayDueSum = coSummaries.fold(0.0, (sum, c) => sum + c.repayDue);
-    final totalAmountSum = coSummaries.fold(
+    final expectedAmountSum = coSummaries.fold(
       0.0,
-      (sum, c) => sum + c.totalAmount,
+      (sum, c) => sum + c.expectedAmount,
     );
 
     return ClientCollectionSummary(
       overdueClients: overdueCOCount.value,
       activeClients: activeCOCount.value,
+      principal: principal.value,
       overdueAmount: overdueAmountStr.value,
       totalOutstanding: loanOutstanding.value,
       paidClients: paidClientsSum,
-      expectedClients: totalClientsSum,
+      expectedClients: expectedClientsSum,
       repayDue: _formatAmount(repayDueSum),
-      expectedAmount: _formatAmount(totalAmountSum),
+      expectedAmount: _formatAmount(expectedAmountSum),
     );
   }
 

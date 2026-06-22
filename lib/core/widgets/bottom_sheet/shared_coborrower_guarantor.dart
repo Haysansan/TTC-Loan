@@ -64,7 +64,9 @@ class BorrowerDatePickerField extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                date != null ? DateFormat('dd/MM/yy').format(date) : 'DD/MM/YY',
+                date != null
+                    ? DateFormat('yyyy-MM-dd').format(date)
+                    : 'YYYY-MM-DD',
                 style: TextStyle(
                   color: date != null ? Colors.black87 : Colors.grey.shade400,
                   fontSize: 14,

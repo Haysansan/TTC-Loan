@@ -5,6 +5,7 @@ import 'package:apploan/models/models.dart';
 import 'package:apploan/views/add_customers/guarantor_controller.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -60,6 +61,52 @@ class AddCustomersController extends GetxController {
   }
 
   void selectGender(String value) => selectedCustomer.value = value;
+
+  final RxBool isFetchingLocation = false.obs;
+
+  Future<void> fetchCurrentLocation() async {
+    if (isFetchingLocation.value) return;
+    isFetchingLocation.value = true;
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        DialogManager.showDialog(
+          title: LocaleKeys.error.tr,
+          subTitle: 'Please enable location services to get your GIS location.',
+          onPressed: () => Get.back(),
+        );
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        DialogManager.showDialog(
+          title: LocaleKeys.error.tr,
+          subTitle:
+              'Location permission is required to get your GIS location.',
+          onPressed: () => Get.back(),
+        );
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      gisCode.text =
+          '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
+    } catch (e) {
+      if (isClosed) return;
+      ExceptionHandler.handleException(e);
+    } finally {
+      isFetchingLocation.value = false;
+    }
+  }
 
   @override
   void onInit() async {

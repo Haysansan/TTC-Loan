@@ -16,6 +16,7 @@ class PaidOffController extends GetxController {
   final TextEditingController totalClient = TextEditingController();
   final TextEditingController totalAmount = TextEditingController();
   final TextEditingController searchCtl = TextEditingController();
+  final RxBool isSearchVisible = false.obs;
   final RxList<PaidOffModel> repaymentModels = <PaidOffModel>[].obs;
   final RxBool isLoading = false.obs;
   final PaginationModel pagination = PaginationModel(limit: 15);
@@ -30,9 +31,13 @@ class PaidOffController extends GetxController {
   final RxList<CoRepaymentGroup> filteredGroups = <CoRepaymentGroup>[].obs;
   final RxList<String> coNames = <String>[].obs;
 
+  final RxInt totalActiveClients = 0.obs;
+  final RxDouble totalActiveAmount = 0.0.obs;
+
   @override
   void onInit() {
     super.onInit();
+    fetchActiveSummary();
   }
 
   @override
@@ -53,10 +58,53 @@ class PaidOffController extends GetxController {
     return SharedPreferencesManager.getIntValue('branch_id');
   }
 
+  Future<String?> _getPermission() async =>
+      await SharedPreferencesManager.get('permission');
+
+  Future<void> fetchActiveSummary() async {
+    try {
+      final int? branchId = await getBranchId();
+      final int? userId = await getUserId();
+      final String? permission = await _getPermission();
+
+      final res = await Get.find<ApiService>().get(
+        EndPoints.dailyDataCollection,
+        queryParameters: {
+          'branch_id': branchId,
+          'user_id': userId,
+          'permission': permission,
+        },
+        isShowLoading: false,
+      );
+
+      final raw = getPropertyFromJson(res.data, 'data');
+      if (raw is! List) return;
+
+      final summaries =
+          raw
+              .map(
+                (e) => CoCollectionSummary.fromJson(e as Map<String, dynamic>),
+              )
+              .toList();
+
+      totalActiveClients.value = summaries.fold(
+        0,
+        (sum, c) => sum + c.activeClients,
+      );
+      totalActiveAmount.value = summaries.fold(
+        0.0,
+        (sum, c) => sum + c.totalOutstanding,
+      );
+    } catch (e) {
+      ExceptionHandler.handleException(e);
+    }
+  }
+
   void filterByOfficer(String? name) {
     selectedOfficer.value = name;
     filteredGroups.value =
         name == null ? [] : coGroups.where((g) => g.coName == name).toList();
+    fetchRepayment(isRefresh: true, isFilter: true);
   }
 
   Future<void> fetchRepayment({
@@ -83,9 +131,17 @@ class PaidOffController extends GetxController {
         isLoading.value = true;
       }
 
+      final int? staffId =
+          selectedOfficer.value == null
+              ? null
+              : coGroups
+                  .firstWhereOrNull((g) => g.coName == selectedOfficer.value)
+                  ?.coId;
+
       final Map<String, dynamic> params = {
         'branch_id': branchId,
         'user_id': user_id,
+        if (staffId != null) 'staff_id': staffId,
       };
 
       String endPoint = EndPoints.PaidLoan;
@@ -189,6 +245,14 @@ class PaidOffController extends GetxController {
 
   void clearFilter() {
     searchCtl.text = '';
+  }
+
+  void toggleSearch() {
+    isSearchVisible.value = !isSearchVisible.value;
+    if (!isSearchVisible.value) {
+      clearFilter();
+      fetchRepaymentSearch(isRefresh: true, isFilter: false);
+    }
   }
 
   String formatCurrency(String amount) {

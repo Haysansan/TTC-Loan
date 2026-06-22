@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:apploan/core/core.dart';
 import 'package:apploan/models/models.dart';
 import 'package:apploan/views/views.dart';
+import 'package:intl/intl.dart';
 
 class ReceivedView extends GetView<ReceivedController> {
   const ReceivedView({super.key});
@@ -39,14 +40,33 @@ class _SummarySection extends StatelessWidget {
         );
       }
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: CustomSummaryCard(
-          mode: SummaryCardMode.totalRepayment,
-          config: SummaryCardConfig.forBM(
-            collectedCOs: c.coGroups.length,
-            totalCOs: c.totalCOs.value,
-            totalRepaymentUsd: c.totalKhr.value,
-            collectedUsd: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFFF0000),
+                Color(0xFFFF8386),
+                Color(0xFFFF0000),
+              ],
+            ),
+          ),
+          child: GlassStatsCard(
+            header:
+                '${c.receivedPercentage.toStringAsFixed(0)}% Received of Transfer',
+            left: GlassStatItem(
+              label: 'Total Transfer',
+              value: '៛${NumberFormat('#,##0').format(c.totalTransferKhr.value)}',
+              count: '${c.totalCOs.value} staff',
+            ),
+            right: GlassStatItem(
+              label: 'Amount Received',
+              value: '៛${NumberFormat('#,##0').format(c.receivedKhr.value)}',
+              count: '',
+            ),
           ),
         ),
       );

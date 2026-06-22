@@ -40,6 +40,11 @@ class StartController extends GetxController {
     selectedIndex.value = index;
     selectedScreen.value = screens[selectedIndex.value];
 
+    if (index == 0) {
+      final DashboardController dashCtl = Get.find<DashboardController>();
+      dashCtl.fetchPendingApprovalCount();
+      dashCtl.fetchSummaryAmounts();
+    }
     if (index == 1) {
       final PaymentListController scanCtl = Get.find<PaymentListController>();
       scanCtl.fetchpaymentList();

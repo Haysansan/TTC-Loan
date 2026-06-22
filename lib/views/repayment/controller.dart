@@ -24,6 +24,7 @@ class RepaymentController extends GetxController {
   final TextEditingController totalClient = TextEditingController();
   final TextEditingController totalAmount = TextEditingController();
   final TextEditingController searchCtl = TextEditingController();
+  final RxBool isSearchVisible = false.obs;
 
   final RxList<RepaymentModel> repaymentModel = <RepaymentModel>[].obs;
   final RxBool isLoading = false.obs;
@@ -280,6 +281,14 @@ class RepaymentController extends GetxController {
 
   void clearFilter() {
     searchCtl.text = '';
+  }
+
+  void toggleSearch() {
+    isSearchVisible.value = !isSearchVisible.value;
+    if (!isSearchVisible.value) {
+      clearFilter();
+      fetchRepaymentSearch(isRefresh: true, isFilter: false);
+    }
   }
 
   void setSearchValue() {

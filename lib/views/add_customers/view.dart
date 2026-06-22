@@ -204,10 +204,34 @@ class AddCustomersView extends GetView<AddCustomersController> {
                       Expanded(
                         child: LabeledField(
                           label: 'GIS',
-                          child: CustomTextField(
-                            controller: controller.gisCode,
-                            hintText: 'Lat/Long',
-                            textInputAction: TextInputAction.next,
+                          child: Obx(
+                            () => CustomTextField(
+                              controller: controller.gisCode,
+                              hintText: 'Lat/Long',
+                              readOnly: true,
+                              onTap: controller.fetchCurrentLocation,
+                              textInputAction: TextInputAction.next,
+                              suffixIcon:
+                                  controller.isFetchingLocation.value
+                                      ? const Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                      )
+                                      : IconButton(
+                                        icon: const Icon(
+                                          Icons.my_location,
+                                          color: AppColor.primary,
+                                        ),
+                                        onPressed:
+                                            controller.fetchCurrentLocation,
+                                      ),
+                            ),
                           ),
                         ),
                       ),

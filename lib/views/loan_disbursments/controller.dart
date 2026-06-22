@@ -165,6 +165,7 @@ class LoanDisbursmentsController extends GetxController {
             'branch_id': branchId,
             'product_type': productType,
             'repayment_frequency_type': frequencyType,
+            'currency_id': 2,
           },
           isShowLoading: false,
         );
@@ -182,14 +183,12 @@ class LoanDisbursmentsController extends GetxController {
   Future<void> fetchProductTypes() async {
     try {
       isLoadingProductTypes.value = true;
-      final data = await _cachedOrFetch('disb_product_types', () async {
-        final res = await Get.find<ApiService>().get(
-          EndPoints.getProductType,
-          isShowLoading: false,
-        );
-        return (getPropertyFromJson(res.data, 'data') as List)
-            .cast<Map<String, dynamic>>();
-      });
+      final res = await Get.find<ApiService>().get(
+        EndPoints.getProductType,
+        isShowLoading: false,
+      );
+      final data = (getPropertyFromJson(res.data, 'data') as List)
+          .cast<Map<String, dynamic>>();
       productTypeList.assignAll(data.map((e) => ProductTypeModel.fromJson(e)));
     } catch (e) {
       if (!isClosed) ExceptionHandler.handleException(e);
@@ -224,16 +223,13 @@ class LoanDisbursmentsController extends GetxController {
     final branchId = await _getBranchId();
     try {
       isLoadingClients.value = true;
-      final cacheKey = 'disb_clients_${branchId}_$userId';
-      final data = await _cachedOrFetch(cacheKey, () async {
-        final res = await Get.find<ApiService>().get(
-          EndPoints.getClientDisb,
-          queryParameters: {'branch_id': branchId, 'user_id': userId},
-          isShowLoading: false,
-        );
-        return (getPropertyFromJson(res.data, 'data') as List)
-            .cast<Map<String, dynamic>>();
-      });
+      final res = await Get.find<ApiService>().get(
+        EndPoints.getClientDisb,
+        queryParameters: {'branch_id': branchId, 'user_id': userId},
+        isShowLoading: false,
+      );
+      final data = (getPropertyFromJson(res.data, 'data') as List)
+          .cast<Map<String, dynamic>>();
       clientList.assignAll(data.map((e) => ClientDisbModel.fromJson(e)));
     } catch (e) {
       if (!isClosed) ExceptionHandler.handleException(e);

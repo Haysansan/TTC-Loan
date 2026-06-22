@@ -4,9 +4,14 @@ import 'package:apploan/core/core.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final VoidCallback? onBack;
+  final List<Widget>? actions;
 
-  const CustomAppBar({Key? key, required this.title, this.onBack})
-    : super(key: key);
+  const CustomAppBar({
+    Key? key,
+    required this.title,
+    this.onBack,
+    this.actions,
+  }) : super(key: key);
 
   @override
   // Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -31,6 +36,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             onPressed: onBack ?? () => Navigator.pop(context),
           ),
           title: Text(title, style: AppTextStyle.largeWhiteBold),
+          actions: actions,
         ),
       ],
     );

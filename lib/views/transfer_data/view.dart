@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:apploan/core/core.dart';
 import 'package:apploan/views/views.dart';
-import 'package:apploan/models/models.dart';
+import 'package:intl/intl.dart';
 
 class TransferDataView extends GetView<TransferDataController> {
   const TransferDataView({Key? key}) : super(key: key);
@@ -93,13 +93,34 @@ class TransferDataView extends GetView<TransferDataController> {
                 if (controller.isLoadings.value) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return CustomSummaryCard(
-                  mode: SummaryCardMode.totalRepayment,
-                  config: SummaryCardConfig.forCO(
-                    collectedClients: controller.clientCount.value,
-                    totalClients: controller.clientCount.value,
-                    totalRepaymentUsd: controller.totalRepaymentKhr.value,
-                    collectedUsd: 0,
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color(0xFFFF0000),
+                          Color(0xFFFF8386),
+                          Color(0xFFFF0000),
+                        ],
+                      ),
+                    ),
+                    child: GlassStatsCard(
+                      left: GlassStatItem(
+                        label: LocaleKeys.totalClient.tr,
+                        value: controller.clientCount.value.toString(),
+                        count: '',
+                      ),
+                      right: GlassStatItem(
+                        label: 'Amount',
+                        value:
+                            '៛${NumberFormat('#,##0').format(controller.totalRepaymentKhr.value)}',
+                        count: '',
+                      ),
+                    ),
                   ),
                 );
               }),

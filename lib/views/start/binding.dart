@@ -6,12 +6,18 @@ import 'package:apploan/views/views.dart';
 class StartBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<StartController>(() => StartController());
-    Get.lazyPut<DashboardController>(() => DashboardController());
-    Get.lazyPut<PaymentListController>(() => PaymentListController());
-    Get.lazyPut<DisburmentListController>(() => DisburmentListController());
-    Get.lazyPut<PaidOffController>(() => PaidOffController());
-    Get.lazyPut<ReasonController>(() => ReasonController());
-    Get.put<ApproveLoansController>(ApproveLoansController());
+    Get.lazyPut<StartController>(() => StartController(), fenix: true);
+    Get.lazyPut<DashboardController>(() => DashboardController(), fenix: true);
+    Get.lazyPut<PaymentListController>(
+      () => PaymentListController(),
+      fenix: true,
+    );
+    Get.lazyPut<DisburmentListController>(
+      () => DisburmentListController(),
+      fenix: true,
+    );
+    Get.lazyPut<PaidOffController>(() => PaidOffController(), fenix: true);
+    Get.lazyPut<ReasonController>(() => ReasonController(), fenix: true);
+    Get.put<ApproveLoansController>(ApproveLoansController(), permanent: true);
   }
 }

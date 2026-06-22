@@ -24,15 +24,29 @@ class UserRepository {
   String get permission => _permission.value;
 
   String get userName {
-    try {
-      return _profile.name.isNotEmpty ? _profile.name : 'User';
-    } catch (_) {
-      return 'User';
-    }
+    final name = profile.name;
+    return name.isNotEmpty ? name : 'User';
   }
 
-  late ProfileModel _profile;
-  ProfileModel get profile => _profile;
+  static final ProfileModel _emptyProfile = ProfileModel(
+    id: 0,
+    name: '',
+    email: '',
+    profile: '',
+    phone: '',
+    gender: '',
+    status: '',
+    branch_id: 0,
+    created_at: '',
+    updated_at: '',
+    profilePath: '',
+    policy: '',
+    type: '',
+    full_name: '',
+  );
+
+  ProfileModel? _profile;
+  ProfileModel get profile => _profile ?? _emptyProfile;
 
   Future<void> logout() async {
     SharedPreferencesManager.remove(Credential.token.name);

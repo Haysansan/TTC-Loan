@@ -32,6 +32,7 @@ class CustomTextField extends StatelessWidget {
     this.enable = true,
     this.hintStyle = AppTextStyle.normalLightGreyRegular,
     this.filled,
+    this.style = const TextStyle(color: AppColor.primaryText, fontSize: 12),
   }) : super(key: key);
 
   final bool obscureText;
@@ -61,6 +62,7 @@ class CustomTextField extends StatelessWidget {
   final bool enable;
   final TextStyle hintStyle;
   final bool? filled;
+  final TextStyle style;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +81,7 @@ class CustomTextField extends StatelessWidget {
       autofocus: autofocus,
       focusNode: focusNode,
       maxLines: maxLine,
+      style: style,
       keyboardType: keyboardType ?? TextInputType.text,
       decoration: InputDecoration(
         suffixIcon: suffixIcon,

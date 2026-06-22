@@ -1,5 +1,6 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:apploan/core/core.dart';
 
 class SearchDropDown<T> extends StatelessWidget {
   const SearchDropDown({
@@ -25,6 +26,7 @@ class SearchDropDown<T> extends StatelessWidget {
       selectedItem: selectedItem,
       onChanged: onChanged,
       dropdownDecoratorProps: DropDownDecoratorProps(
+        baseStyle: const TextStyle(color: AppColor.primaryText, fontSize: 12),
         dropdownSearchDecoration: InputDecoration(
           labelText: label,
           contentPadding: const EdgeInsets.symmetric(

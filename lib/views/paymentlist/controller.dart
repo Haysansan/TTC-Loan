@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 
 class PaymentListController extends GetxController {
   final TextEditingController searchCtl = TextEditingController();
+  final RxBool isSearchVisible = false.obs;
   final selectedOfficer = RxnString();
   final RxList<CoRepaymentGroup> coGroups = <CoRepaymentGroup>[].obs;
   final RxList<CoRepaymentGroup> filteredGroups = <CoRepaymentGroup>[].obs;
@@ -43,7 +44,6 @@ class PaymentListController extends GetxController {
     } else {
       fetchpaymentListFromApi();
     }
-    print('PaymentListController CREATED');
     super.onInit();
   }
 
@@ -57,9 +57,7 @@ class PaymentListController extends GetxController {
   @override
   void onClose() {
     searchCtl.dispose();
-    fetchpaymentList();
     super.onClose();
-    print('PaymentListController DESTROYED');
   }
 
   Future<int?> getbranchId() async {
@@ -78,6 +76,13 @@ class PaymentListController extends GetxController {
     filteredGroups.value =
         name == null ? [] : coGroups.where((g) => g.coName == name).toList();
   }
+
+  List<PaymentModel> get displayedItems =>
+      selectedOfficer.value == null
+          ? repayment
+          : repayment
+              .where((m) => m.loan_officer == selectedOfficer.value)
+              .toList();
 
   int customerCount = 0;
   Future<void> _countCustomers() async {
@@ -100,6 +105,14 @@ class PaymentListController extends GetxController {
     searchCtl.text = '';
   }
 
+  void toggleSearch() {
+    isSearchVisible.value = !isSearchVisible.value;
+    if (!isSearchVisible.value) {
+      clearFilter();
+      fetchpaymentList();
+    }
+  }
+
   Future<void> fetchpaymentList() async {
     try {
       isLoading.value = true;
@@ -108,6 +121,7 @@ class PaymentListController extends GetxController {
       collectedSumRaw.value = sum;
       totalRepaymentRaw.value = sum;
       repayment.value = await DatabaseHelper.instance.queryAllRowsCollected();
+      collectedClients.value = repayment.value.length;
       isDone = true;
       DialogManager.hideLoading();
     } catch (e) {

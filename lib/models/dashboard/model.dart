@@ -94,7 +94,7 @@ class CoCollectionSummary {
           double.tryParse('${json['ExpectedClientDue']}')?.toInt() ?? 0,
       paidClients: int.tryParse('${json['client_paid']}') ?? 0,
       totalClients: double.tryParse('${json['total_client']}')?.toInt() ?? 0,
-      totalOutstanding: double.tryParse('${json['total_outstanding']}') ?? 0.0,
+      totalOutstanding: double.tryParse('${json['principal']}') ?? 0.0,
       overdueAmount: double.tryParse('${json['over_due_amount']}') ?? 0.0,
       expectedAmount: double.tryParse('${json['ExpectedAmount']}') ?? 0.0,
       repayDue: double.tryParse('${json['RepaydueDue']}') ?? 0.0,
