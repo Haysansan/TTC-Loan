@@ -47,7 +47,11 @@ class StartController extends GetxController {
     }
     if (index == 1) {
       final PaymentListController scanCtl = Get.find<PaymentListController>();
-      scanCtl.fetchpaymentList();
+      if (UserRepository.shared.isCO) {
+        scanCtl.fetchpaymentList();
+      } else {
+        scanCtl.fetchpaymentListFromApi();
+      }
     }
     if (index == 2) {
       final PaidOffController scanCtl = Get.find<PaidOffController>();

@@ -209,26 +209,28 @@ class PaymentListController extends GetxController {
         isShowLoading: false,
       );
 
-      final List users = res.data['users'] ?? [];
-      coNames.value =
-          users
-              .map((u) => u['full_name']?.toString() ?? '')
-              .where((name) => name.isNotEmpty)
-              .toSet()
-              .cast<String>()
-              .toList();
-
       final data = getPropertyFromJson(res.data, 'data');
       repayment.value = List.from(
         (data as List).map((e) => PaymentModel.fromJson(e)),
       );
+
+      coNames.value =
+          repayment.value
+              .map((e) => e.loan_officer)
+              .where((name) => name.isNotEmpty && name != 'N/A')
+              .toSet()
+              .cast<String>()
+              .toList()
+            ..sort();
 
       final collected = repayment.value.fold(
         0.0,
         (prev, e) => prev + e.amount_khr,
       );
       collectedSumRaw.value = collected;
-      collectedClients.value = repayment.value.length;
+
+      final uniqueClientIds = repayment.value.map((e) => e.client_id).toSet();
+      collectedClients.value = uniqueClientIds.length;
 
       final rawTotal =
           double.tryParse(
@@ -237,8 +239,7 @@ class PaymentListController extends GetxController {
           0.0;
       totalRepaymentRaw.value = rawTotal;
 
-      totalClient.text =
-          (getPropertyFromJson(res.data, 'totalClient') ?? '0').toString();
+      totalClient.text = uniqueClientIds.length.toString();
       totalAmount.text = formatCurrency(rawTotal.toString());
 
       isDone = true;
