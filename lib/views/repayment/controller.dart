@@ -221,15 +221,21 @@ class RepaymentController extends GetxController {
         isShowLoading: false,
       );
 
+      final collectedLoanIds =
+          (await DatabaseHelper.instance.queryAllRowsCollected())
+              .map((e) => e.loan_id)
+              .toSet();
+
       final data = getPropertyFromJson(res.data, 'data');
-      repaymentModel.value = List.from(
+      final fetched = List<RepaymentModel>.from(
         (data as List)
             .map((e) => RepaymentModel.fromJson(e))
-            .where((e) => double.parse(e.total_repayment) > 0),
+            .where((e) => (double.tryParse(e.total_toclose) ?? 0) > 0)
+            .where((e) => !collectedLoanIds.contains(e.loan_id)),
       );
-      _allItems = repaymentModel.toList();
+      _allItems = fetched;
       coNames.value =
-          repaymentModel
+          fetched
               .map(
                 (e) => e.loan_officer,
               ) // confirm field name on RepaymentModel
@@ -238,6 +244,13 @@ class RepaymentController extends GetxController {
               .cast<String>()
               .toList()
             ..sort();
+
+      repaymentModel.value =
+          selectedOfficer.value == null
+              ? fetched
+              : fetched
+                  .where((e) => e.loan_officer == selectedOfficer.value)
+                  .toList();
 
       _updateSummary();
     } catch (e) {
@@ -281,6 +294,7 @@ class RepaymentController extends GetxController {
 
   void clearFilter() {
     searchCtl.text = '';
+    selectedOfficer.value = null;
   }
 
   void toggleSearch() {

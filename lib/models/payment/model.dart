@@ -3,6 +3,7 @@ class PaymentModel {
   final String client;
   final String photo;
   final String loan_officer;
+  final String? loan_officer_id;
   final String client_id;
   final String loan_id;
   final String client_code;
@@ -20,6 +21,7 @@ class PaymentModel {
     required this.client,
     required this.photo,
     required this.loan_officer,
+    this.loan_officer_id,
     required this.client_id,
     required this.loan_id,
     required this.client_code,
@@ -58,21 +60,22 @@ class PaymentModel {
 
   factory PaymentModel.fromJson(Map<String, dynamic> json) {
     return PaymentModel(
-      id: json['payment_detail_id'] ?? 0,
-
-      client: json['client_name'] ?? 'N/A',
-      photo: json['photo'] ?? 'N/A',
-      loan_officer: json['collected_by'] ?? 'N/A',
+      id: json['id'] ?? 0,
+      client: json['client']?.toString() ?? 'N/A',
+      photo: json['photo']?.toString() ?? 'N/A',
+      loan_officer: json['loan_officer']?.toString() ?? 'N/A',
+      loan_officer_id: json['loan_officer_id']?.toString(),
       client_id: json['client_id']?.toString() ?? 'N/A',
       loan_id: json['loan_id']?.toString() ?? 'N/A',
-      client_code: json['transaction_number'] ?? 'N/A',
-      total_repayment: json['amount_khr']?.toString() ?? '0',
-      amount_khr: double.tryParse(json['amount_khr']?.toString() ?? '') ?? 0.0,
-      amount_usd: double.tryParse(json['amount_usd']?.toString() ?? '') ?? 0.0,
-      amount_penalty: '0',
-      submitted_on: json['collect_date'] ?? 'N/A',
-      payment_type: json['transaction_name'] ?? 'N/A',
-      status_pay: json['reversed']?.toString() ?? 'N/A',
+      client_code: json['client_code']?.toString() ?? 'N/A',
+      total_repayment: json['total_repayment']?.toString() ?? '0',
+      amount_khr:
+          double.tryParse(json['total_repayment']?.toString() ?? '') ?? 0.0,
+      amount_usd: 0.0,
+      amount_penalty: json['amount_penalty']?.toString() ?? '0',
+      submitted_on: json['submitted_on']?.toString() ?? 'N/A',
+      payment_type: json['payment_type']?.toString() ?? 'N/A',
+      status_pay: json['status_pay']?.toString() ?? 'N/A',
       syncedate: 'N/A',
       synced: '0',
     );
@@ -83,6 +86,7 @@ class PaymentModel {
       client: json['client'] ?? 'N/A',
       photo: json['photo'] ?? 'N/A',
       loan_officer: json['loan_officer']?.toString() ?? 'N/A',
+      loan_officer_id: json['created_by_id']?.toString(),
       client_id: json['client_id']?.toString() ?? 'N/A',
       loan_id: json['loan_id']?.toString() ?? 'N/A',
       client_code: json['client_code'] ?? 'N/A',

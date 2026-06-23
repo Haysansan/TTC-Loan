@@ -162,6 +162,7 @@ class _RepaymentList extends StatelessWidget {
       color: AppColor.primary,
       onRefresh: () async => await Get.find<RepaymentController>().onRefresh(),
       child: pull.SmartRefresher(
+        enablePullDown: false,
         header: pull.CustomHeader(
           height: 0,
           builder: (context, mode) => const SizedBox.shrink(),

@@ -101,7 +101,7 @@ class PaidOffItemWidget extends StatelessWidget {
                       ),
                       4.height,
                       Text(
-                        'បង់ត្រូចថ៖ ${formatCurrency(paidoff.total_repayment.toString())} រៀល',
+                        'ទឹកប្រាក់ត្រូវផ្ដាច់ ៖ ${formatCurrency(paidoff.total_repayment.toString())} រៀល',
                         style: AppTextStyle.normalSecondaryBold.copyWith(
                           color: AppColor.red,
                         ),

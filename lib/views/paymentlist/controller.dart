@@ -86,14 +86,18 @@ class PaymentListController extends GetxController {
 
   int customerCount = 0;
   Future<void> _countCustomers() async {
-    customerCount = await DatabaseHelper.instance.countCustomersCollection();
+    final userId = (await getUserId())?.toString();
+    customerCount = await DatabaseHelper.instance.countCustomersCollection(
+      userId: userId,
+    );
     totalClient.text = customerCount.toString();
   }
 
   double sum = 0;
   Future<void> _calculateSum() async {
-    List<PaymentModel> rows =
-        await DatabaseHelper.instance.queryAllRowsCollected();
+    final userId = (await getUserId())?.toString();
+    List<PaymentModel> rows = await DatabaseHelper.instance
+        .queryAllRowsCollectedByUser(userId);
     sum = rows.fold(
       0.0,
       (prev, element) => prev + double.parse(element.total_repayment),
@@ -120,7 +124,9 @@ class PaymentListController extends GetxController {
       await _calculateSum();
       collectedSumRaw.value = sum;
       totalRepaymentRaw.value = sum;
-      repayment.value = await DatabaseHelper.instance.queryAllRowsCollected();
+      final userId = (await getUserId())?.toString();
+      repayment.value = await DatabaseHelper.instance
+          .queryAllRowsCollectedByUser(userId);
       collectedClients.value = repayment.value.length;
       isDone = true;
       DialogManager.hideLoading();
@@ -209,26 +215,28 @@ class PaymentListController extends GetxController {
         isShowLoading: false,
       );
 
-      final List users = res.data['users'] ?? [];
-      coNames.value =
-          users
-              .map((u) => u['full_name']?.toString() ?? '')
-              .where((name) => name.isNotEmpty)
-              .toSet()
-              .cast<String>()
-              .toList();
-
       final data = getPropertyFromJson(res.data, 'data');
       repayment.value = List.from(
         (data as List).map((e) => PaymentModel.fromJson(e)),
       );
+
+      coNames.value =
+          repayment.value
+              .map((e) => e.loan_officer)
+              .where((name) => name.isNotEmpty && name != 'N/A')
+              .toSet()
+              .cast<String>()
+              .toList()
+            ..sort();
 
       final collected = repayment.value.fold(
         0.0,
         (prev, e) => prev + e.amount_khr,
       );
       collectedSumRaw.value = collected;
-      collectedClients.value = repayment.value.length;
+
+      final uniqueClientIds = repayment.value.map((e) => e.client_id).toSet();
+      collectedClients.value = uniqueClientIds.length;
 
       final rawTotal =
           double.tryParse(
@@ -237,8 +245,7 @@ class PaymentListController extends GetxController {
           0.0;
       totalRepaymentRaw.value = rawTotal;
 
-      totalClient.text =
-          (getPropertyFromJson(res.data, 'totalClient') ?? '0').toString();
+      totalClient.text = uniqueClientIds.length.toString();
       totalAmount.text = formatCurrency(rawTotal.toString());
 
       isDone = true;
